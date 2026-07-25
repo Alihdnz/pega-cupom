@@ -1,8 +1,146 @@
+// Define database connection via the `DATABASE_URL` env var
+datasource db {
+  provider = "postgresql"
+}
+
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
 }
+enum UserRole {
+  ADMIN
+  EDITOR
+}
 
-datasource db {
-  provider = "postgresql"
+enum OfferStatus {
+  DRAFT
+  PUBLISHED
+  EXPIRED
+  ARCHIVED
+}
+
+enum DispatchStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id       String   @id @default(cuid())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole @default(EDITOR)
+  isActive Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Store {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  logoUrl  String?
+  website  String?
+  isActive Boolean @default(true)
+
+  offers Offer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  color    String?
+  isActive Boolean @default(true)
+
+  offers Offer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Offer {
+  id String @id @default(cuid())
+
+  title       String
+  slug        String  @unique
+  description String?
+
+  couponCode String?
+
+  affiliateUrl String
+  imageUrl     String?
+
+  price              Decimal? @db.Decimal(10, 2)
+  originalPrice      Decimal? @db.Decimal(10, 2)
+  discountPercentage Int?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  status     OfferStatus @default(DRAFT)
+  isFeatured Boolean     @default(false)
+
+  categoryId String
+  storeId    String
+
+  category Category @relation(fields: [categoryId], references: [id])
+  store    Store    @relation(fields: [storeId], references: [id])
+
+  dispatches Dispatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([storeId])
+  @@index([status])
+}
+
+model Group {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+
+  isActive Boolean @default(true)
+
+  dispatches DispatchGroup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Dispatch {
+  id String @id @default(cuid())
+
+  offerId String
+
+  status DispatchStatus @default(PENDING)
+
+  scheduledAt DateTime?
+  sentAt      DateTime?
+
+  offer  Offer           @relation(fields: [offerId], references: [id])
+  groups DispatchGroup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([offerId])
+}
+
+model DispatchGroup {
+  dispatchId String
+  groupId    String
+
+  dispatch Dispatch @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([dispatchId, groupId])
 }
