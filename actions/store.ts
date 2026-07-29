@@ -1,0 +1,44 @@
+"use server";
+
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { storeSchema } from "@/schemas/store";
+import { revalidatePath } from "next/cache";
+
+export async function createStore(data: unknown) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("Não autenticado.");
+  }
+
+  const values = storeSchema.parse(data);
+
+  const exists = await prisma.store.findUnique({
+    where: {
+      slug: values.slug,
+    },
+  });
+
+  if (exists) {
+    throw new Error("Já existe uma loja utilizando este slug.");
+  }
+
+  await prisma.store.create({
+    data: {
+      name: values.name,
+      slug: values.slug,
+      website: values.website || null,
+      logoUrl: values.logoUrl || null,
+
+      users: {
+        create: {
+          userId: session.user.id,
+          isOwner: true,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/admin/stores");
+}

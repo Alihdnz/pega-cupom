@@ -7,29 +7,29 @@ import { Sidebar } from "@/components/layouts/admin/sidebar";
 import { Topbar } from "@/components/layouts/admin/topbar";
 
 interface LayoutProps {
-  children: ReactNode;
+children: ReactNode;
 }
 
 export default async function AdminLayout({
-  children,
+children,
 }: LayoutProps) {
-  const session = await auth();
+const session = await auth();
 
-  if (!session) {
-    redirect("/login");
-  }
+if (!session) {
+  redirect("/login");
+}
 
-  return (
-    <div className="flex min-h-screen bg-muted/30">
-      <Sidebar />
+return (
+  <div className="flex min-h-screen bg-muted/30">
+    <Sidebar />
 
-      <main className="flex flex-1 flex-col">
-        <Topbar />
+    <main className="flex flex-1 flex-col">
+      <Topbar />
 
-        <div className="flex-1 p-6">
-          {children}
-        </div>
-      </main>
-    </div>
-  );
+      <div className="flex-1 p-6">
+        {children}
+      </div>
+    </main>
+  </div>
+);
 }
