@@ -21,7 +21,7 @@ async function main() {
       name: "Administrador",
       email: "admin@pegacupom.com",
       password,
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_ADMIN,
     },
   });
 

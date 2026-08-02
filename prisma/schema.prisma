@@ -8,8 +8,8 @@ generator client {
 }
 
 enum UserRole {
-  ADMIN
-  EDITOR
+  SUPER_ADMIN
+  STORE_ADMIN
 }
 
 enum OfferStatus {
@@ -30,7 +30,7 @@ model User {
   name     String
   email    String   @unique
   password String
-  role     UserRole @default(EDITOR)
+  role     UserRole @default(STORE_ADMIN)
   isActive Boolean  @default(true)
 
   stores UserStore[]
@@ -47,9 +47,11 @@ model Store {
   website  String?
   isActive Boolean @default(true)
 
-  users UserStore[]
-
   offers Offer[]
+
+  categories Category[]
+
+  users UserStore[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,12 +76,17 @@ model Category {
   color    String?
   isActive Boolean @default(true)
 
+  storeId String
+
+  store Store @relation(fields: [storeId], references: [id])
+
   offers Offer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
+  @@index([storeId])
+}
 model Offer {
   id String @id @default(cuid())
 

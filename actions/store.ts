@@ -11,6 +11,15 @@ export async function createStore(data: unknown) {
   if (!session?.user?.id) {
     throw new Error("Não autenticado.");
   }
+  console.log(session.user.id);
+
+  const currentUser = await prisma.user.findUnique({
+  where: {
+    id: session.user.id,
+  },
+});
+
+console.log(currentUser);
 
   const values = storeSchema.parse(data);
 
