@@ -31,12 +31,126 @@ export async function createStore(data: unknown) {
       website: values.website || null,
       logoUrl: values.logoUrl || null,
 
+      isActive: true,
+
       users: {
         create: {
           userId: session.user.id,
           isOwner: true,
         },
       },
+    },
+  });
+
+  revalidatePath("/admin/stores");
+}
+
+export async function updateStore(
+  id: string,
+  data: unknown
+) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("Não autenticado.");
+  }
+
+  const values = storeSchema.parse(data);
+
+  const store = await prisma.store.findFirst({
+    where: {
+      id,
+      users: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+  });
+
+  if (!store) {
+    throw new Error("Loja não encontrada.");
+  }
+
+  await prisma.store.update({
+    where: {
+      id,
+    },
+    data: {
+      name: values.name,
+      slug: values.slug,
+      website: values.website || null,
+      logoUrl: values.logoUrl || null,
+      isActive: values.isActive,
+    },
+  });
+
+  revalidatePath("/admin/stores");
+}
+
+export async function deleteStore(
+  id: string
+) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("Não autenticado.");
+  }
+
+  const store = await prisma.store.findFirst({
+    where: {
+      id,
+      users: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+  });
+
+  if (!store) {
+    throw new Error("Loja não encontrada.");
+  }
+
+  await prisma.store.delete({
+    where: {
+      id,
+    },
+  });
+
+  revalidatePath("/admin/stores");
+}
+
+export async function toggleStoreStatus(
+  id: string
+) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("Não autenticado.");
+  }
+
+  const store = await prisma.store.findFirst({
+    where: {
+      id,
+      users: {
+        some: {
+          userId: session.user.id,
+        },
+      },
+    },
+  });
+
+  if (!store) {
+    throw new Error("Loja não encontrada.");
+  }
+
+  await prisma.store.update({
+    where: {
+      id,
+    },
+    data: {
+      isActive: !store.isActive,
     },
   });
 

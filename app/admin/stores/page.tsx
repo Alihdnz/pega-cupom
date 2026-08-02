@@ -17,17 +17,28 @@ export default async function StoresPage() {
   const session = await auth();
 
   const stores = await prisma.store.findMany({
-    where: {
-      users: {
-        some: {
-          userId: session!.user.id,
-        },
+  select: {
+    id: true,
+    name: true,
+    slug: true,
+    website: true,
+    logoUrl: true,
+    isActive: true,
+    createdAt: true,
+  },
+
+  where: {
+    users: {
+      some: {
+        userId: session!.user.id,
       },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  },
+
+  orderBy: {
+    createdAt: "desc",
+  },
+});
 
   return (
     <PageContainer>

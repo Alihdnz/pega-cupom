@@ -28,7 +28,7 @@ export const storeSchema = z.object({
     .optional()
     .or(z.literal("")),
 
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 });
 
 export type StoreFormData = z.infer<typeof storeSchema>;

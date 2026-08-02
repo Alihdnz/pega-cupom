@@ -4,15 +4,25 @@ import Link from "next/link";
 
 import { Pencil, Trash2 } from "lucide-react";
 
-import { Store } from "@prisma/client";
-
 import { Button } from "@/components/ui/button";
 
 import { StatusBadge } from "@/components/shared/status-badge";
 import { DeleteDialog } from "@/components/shared/dialogs/delete-dialog";
+import { deleteStore } from "@/actions/store";
+import { StoreStatusButton } from "./store-status-button";
+
+interface StoreRow {
+  id: string;
+  name: string;
+  slug: string;
+  website: string | null;
+  logoUrl: string | null;
+  isActive: boolean;
+  createdAt: Date;
+}
 
 interface StoresTableProps {
-  stores: Store[];
+  stores: StoreRow[];
 }
 
 export function StoresTable({
@@ -48,12 +58,20 @@ export function StoresTable({
               className="border-b last:border-none"
             >
               <td className="px-6 py-4">
-                <div className="font-medium">
-                  {store.name}
-                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted font-semibold">
+                    {store.name.charAt(0)}
+                  </div>
 
-                <div className="text-sm text-muted-foreground">
-                  {store.slug}
+                  <div>
+                    <div className="font-medium">
+                      {store.name}
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                      {store.slug}
+                    </div>
+                  </div>
                 </div>
               </td>
 
@@ -67,6 +85,12 @@ export function StoresTable({
 
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-2">
+
+                  <StoreStatusButton
+                    id={store.id}
+                    active={store.isActive}
+                  />
+
                   <Button
                     variant="outline"
                     size="icon"
@@ -91,9 +115,10 @@ export function StoresTable({
                     title="Excluir loja"
                     description={`Deseja realmente excluir "${store.name}"?`}
                     onDelete={async () => {
-                      console.log(store.id);
+                      await deleteStore(store.id);
                     }}
                   />
+
                 </div>
               </td>
             </tr>
