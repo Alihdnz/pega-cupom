@@ -12,33 +12,38 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 
 import { StoresTable } from "@/components/stores/stores-table";
+import { isSuperAdmin } from "@/lib/permissions";
 
 export default async function StoresPage() {
   const session = await auth();
 
-  const stores = await prisma.store.findMany({
-  select: {
-    id: true,
-    name: true,
-    slug: true,
-    website: true,
-    logoUrl: true,
-    isActive: true,
-    createdAt: true,
-  },
+  const superAdmin = await isSuperAdmin();
 
-  where: {
-    users: {
-      some: {
-        userId: session!.user.id,
+  const stores = await prisma.store.findMany({
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      website: true,
+      logoUrl: true,
+      isActive: true,
+      createdAt: true,
+    },
+
+    where: superAdmin
+  ? {}
+  : {
+      users: {
+        some: {
+          userId: session!.user.id,
+        },
       },
     },
-  },
 
-  orderBy: {
-    createdAt: "desc",
-  },
-});
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
     <PageContainer>

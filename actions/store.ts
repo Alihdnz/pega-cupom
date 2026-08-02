@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { storeSchema } from "@/schemas/store";
 import { revalidatePath } from "next/cache";
+import { getAccessibleStore } from "@/lib/store-access";
 
 export async function createStore(data: unknown) {
   const session = await auth();
@@ -66,21 +67,8 @@ export async function updateStore(
 
   const values = storeSchema.parse(data);
 
-  const store = await prisma.store.findFirst({
-    where: {
-      id,
-      users: {
-        some: {
-          userId: session.user.id,
-        },
-      },
-    },
-  });
-
-  if (!store) {
-    throw new Error("Loja não encontrada.");
-  }
-
+  await getAccessibleStore(id);
+  
   await prisma.store.update({
     where: {
       id,
@@ -106,20 +94,7 @@ export async function deleteStore(
     throw new Error("Não autenticado.");
   }
 
-  const store = await prisma.store.findFirst({
-    where: {
-      id,
-      users: {
-        some: {
-          userId: session.user.id,
-        },
-      },
-    },
-  });
-
-  if (!store) {
-    throw new Error("Loja não encontrada.");
-  }
+  await getAccessibleStore(id);
 
   await prisma.store.delete({
     where: {
@@ -138,21 +113,9 @@ export async function toggleStoreStatus(
   if (!session?.user?.id) {
     throw new Error("Não autenticado.");
   }
+const store = await getAccessibleStore(id);
 
-  const store = await prisma.store.findFirst({
-    where: {
-      id,
-      users: {
-        some: {
-          userId: session.user.id,
-        },
-      },
-    },
-  });
-
-  if (!store) {
-    throw new Error("Loja não encontrada.");
-  }
+!store.isActive
 
   await prisma.store.update({
     where: {
