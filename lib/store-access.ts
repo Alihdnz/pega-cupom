@@ -10,23 +10,21 @@ export async function getAccessibleStore(
     throw new Error("Não autenticado.");
   }
 
-  const isSuperAdmin =
-    session.user.role === "SUPER_ADMIN";
-
   const store = await prisma.store.findFirst({
-    where: isSuperAdmin
-      ? {
-          id: storeId,
-        }
-      : {
-          id: storeId,
+    where:
+      session.user.role === "SUPER_ADMIN"
+        ? {
+            id: storeId,
+          }
+        : {
+            id: storeId,
 
-          users: {
-            some: {
-              userId: session.user.id,
+            users: {
+              some: {
+                userId: session.user.id,
+              },
             },
           },
-        },
   });
 
   if (!store) {
